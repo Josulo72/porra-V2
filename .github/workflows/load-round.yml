@@ -1,0 +1,30 @@
+name: Cargar jornada
+
+on:
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Forzar aunque la jornada actual tenga partidos por jugar'
+        required: false
+        default: 'false'
+  schedule:
+    # Martes 05:00 hora de Madrid (03:00 UTC): la jornada anterior ya ha terminado
+    - cron: '0 3 * * 2'
+    # Reintentos miércoles, jueves y viernes a la misma hora
+    - cron: '0 3 * * 3,4,5'
+
+jobs:
+  load:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Cargar siguiente jornada
+        env:
+          SUPABASE_URL: https://zgfcgserojzxyshbbzod.supabase.co
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          FORCE: ${{ github.event.inputs.force || 'false' }}
+        run: node scripts/load-round.mjs

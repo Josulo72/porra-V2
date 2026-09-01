@@ -1,0 +1,27 @@
+name: Actualizar resultados
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Sábado, domingo y lunes, cada 5 min entre las 12:00 y las 00:00 hora de Madrid
+    # (GitHub ignora la mayoría de estas ejecuciones; el script sondea en bucle)
+    - cron: '*/5 10-23 * * 6,0,1'
+
+concurrency:
+  group: update-results
+  cancel-in-progress: true
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 200
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Sondear y actualizar
+        env:
+          SUPABASE_URL: https://zgfcgserojzxyshbbzod.supabase.co
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: node scripts/update-results.mjs
